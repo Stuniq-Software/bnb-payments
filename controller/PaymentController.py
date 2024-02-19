@@ -28,6 +28,7 @@ async def webhook_route(request: Request, response: Response):
     sig_header = request.headers.get("stripe-signature")
     success, message = payment_service.webhook_handler(payload, sig_header, event)
     if not success:
+        print(f"Error handling webhook: {message}")
         api_resp = APIResponse(status=HttpStatus.INTERNAL_SERVER_ERROR, message=message, data=None)
         response.status_code = api_resp.status.value
         return api_resp.to_dict()

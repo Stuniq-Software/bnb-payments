@@ -42,10 +42,10 @@ class PaymentRepository:
         event_dict = event.to_dict()
         if event_dict['type'] == 'payment_intent.succeeded':
             payment_intent = event_dict['data']['object']
-            sql_query = "UPDATE bookings SET payment_status = %s, updated_at = %s WHERE payment_id = %s RETURNING id"
+            sql_query = "UPDATE bookings SET status = %s, updated_at = %s WHERE payment_id = %s RETURNING id"
             payment_query = ("INSERT INTO payments (booking_id, amount, currency, status, payment_intent_id) VALUES  ("
                              "%s, %s, %s, %s, %s)")
-            success, err = self.db_session.execute_query(sql_query, ("paid", datetime.now(), payment_intent.id))
+            success, err = self.db_session.execute_query(sql_query, ("confirmed", datetime.now(), payment_intent.id))
             if not success:
                 return False, err
 
