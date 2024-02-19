@@ -1,5 +1,5 @@
 from util import Database, RedisSession
-from typing import Tuple
+from typing import Tuple, Union
 from datetime import datetime
 import stripe
 import os
@@ -18,6 +18,15 @@ class PaymentRepository:
     def get_intent(self, payment_id: str) -> str:
         intent = stripe.PaymentIntent.retrieve(payment_id)
         return intent.client_secret
+    
+    def get_payment_status(self, payment_id: str) -> Union[str, dict]:
+        query = "SELECT * FROM payments WHERE payment_id = %s"
+        success, err = self.db_session.execute_query(query, (payment_id,))
+        if not success:
+            return success, str(err)
+        data = self.db_session.get_cursor().fetchone()
+        return success, data
+
 
     def webhook_handler(self, payload, sig_header, event) -> Tuple[bool, str]:
         try:

@@ -43,3 +43,11 @@ async def get_payment_intent(payment_id: str, response: Response):
     api_resp = APIResponse(status=HttpStatus.OK, message="Payment Intent retrieved", data={"client_secret": client_secret})
     response.status_code = api_resp.status.value
     return api_resp.to_dict()
+
+
+@router.get("/status/{payment_id}")
+async def get_payment_status(payment_id: str, response: Response):
+    status = payment_service.get_payment_status(payment_id)
+    api_resp = APIResponse(status=HttpStatus.OK, message="Payment Status retrieved", data={"status": status})
+    response.status_code = api_resp.status.value
+    return api_resp.to_dict()

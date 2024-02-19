@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dtypes import APIResponse, HttpStatus
 from controller import PaymentController
 import os
@@ -20,6 +21,14 @@ app = FastAPI(
         "email": "abhirambsn@gmail.com",
         "url": "https://abhirambsn.com"
     }
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
 )
 
 app.include_router(PaymentController)
