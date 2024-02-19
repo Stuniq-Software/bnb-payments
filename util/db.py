@@ -54,6 +54,9 @@ class Database:
     def commit(self):
         self._connection.commit()
 
+    def rollback(self):
+        self._connection.rollback()
+
     def close(self):
         self._cursor.close()
         self._connection.close()

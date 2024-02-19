@@ -42,11 +42,12 @@ class PaymentRepository:
         event_dict = event.to_dict()
         if event_dict['type'] == 'payment_intent.succeeded':
             payment_intent = event_dict['data']['object']
-            sql_query = "UPDATE bookings SET status = %s, updated_at = %s WHERE payment_id = %s RETURNING id"
+            sql_query = "UPDATE bookings SET status = %s, updated_at = %s, is_paid = true WHERE payment_id = %s RETURNING id"
             payment_query = ("INSERT INTO payments (booking_id, amount, currency, status, payment_intent_id) VALUES  ("
                              "%s, %s, %s, %s, %s)")
             success, err = self.db_session.execute_query(sql_query, ("confirmed", datetime.now(), payment_intent.id))
             if not success:
+                self.db_session.rollback()
                 return False, err
 
             success, err = self.db_session.execute_query(payment_query, (
@@ -57,10 +58,23 @@ class PaymentRepository:
                 payment_intent.id
             ))
             if not success:
+                self.db_session.rollback()
+                return False, err
+            # TODO: Mark Stay as booked for the period
+            stay_query = "UPDATE stays SET is_available = false, booked_by = %s, booked_until = %s, updated_at = %s WHERE id = %s"
+            success, err = self.db_session.execute_query(stay_query, (
+                payment_intent.metadata.user_id,
+                payment_intent.metadata.check_out,
+                datetime.now(),
+                payment_intent.metadata.stay_id
+            ))
+            if not success:
+                self.db_session.rollback()
                 return False, err
             print(f"PaymentIntent was successful: {payment_intent.id}")
         elif event_dict['type'] == 'payment_intent.payment_failed':
             payment_intent = event_dict['data']['object']
             print(f"PaymentIntent failed: {payment_intent.id}")
             return False, "PaymentIntent failed"
+        self.db_session.commit()
         return True, "OK"
