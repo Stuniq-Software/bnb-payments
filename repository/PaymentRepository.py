@@ -64,8 +64,8 @@ class PaymentRepository:
             stay_query = "UPDATE stays SET is_available = false, booked_by = %s, booked_until = %s, updated_at = %s WHERE id = %s"
             success, err = self.db_session.execute_query(stay_query, (
                 payment_intent.metadata.user_id,
-                payment_intent.metadata.checkout_date,
-                datetime.now().strftime("%Y-%m-%d"),
+                datetime.fromtimestamp(payment_intent.metadata.checkout_date).strftime("%Y-%m-%d"),
+                datetime.now(),
                 payment_intent.metadata.stay_id
             ))
             if not success:
