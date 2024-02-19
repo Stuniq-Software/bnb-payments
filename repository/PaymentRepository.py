@@ -1,6 +1,7 @@
 from util import Database, RedisSession
 from typing import Tuple, Union
 from datetime import datetime
+from dtypes import Payment
 import stripe
 import os
 
@@ -19,13 +20,15 @@ class PaymentRepository:
         intent = stripe.PaymentIntent.retrieve(payment_id)
         return intent.client_secret
     
-    def get_payment_status(self, payment_id: str) -> Union[str, dict]:
-        query = "SELECT * FROM payments WHERE payment_id = %s"
+    def get_payment_status(self, payment_id: str) -> Tuple[bool, Union[str, dict]]:
+        query = "SELECT * FROM payments WHERE id = %s"
         success, err = self.db_session.execute_query(query, (payment_id,))
         if not success:
             return success, str(err)
         data = self.db_session.get_cursor().fetchone()
-        return success, data
+        if len(data) == 0:
+            return False, "Payment not found"
+        return success, Payment.from_tuple(data).to_dict()
 
 
     def webhook_handler(self, payload, sig_header, event) -> Tuple[bool, str]:
