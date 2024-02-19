@@ -37,7 +37,7 @@ async def webhook_route(request: Request, response: Response):
     return api_resp.to_dict()
 
 
-@router.get("/{payment_id}")
+@router.get("/intent/{payment_id}")
 async def get_payment_intent(payment_id: str, response: Response):
     client_secret = payment_service.get_intent(payment_id)
     api_resp = APIResponse(status=HttpStatus.OK, message="Payment Intent retrieved", data={"client_secret": client_secret})
