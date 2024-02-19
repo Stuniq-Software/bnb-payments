@@ -65,7 +65,7 @@ class PaymentRepository:
             success, err = self.db_session.execute_query(stay_query, (
                 payment_intent.metadata.user_id,
                 payment_intent.metadata.checkout_date,
-                datetime.now(),
+                datetime.now().strftime("%Y-%m-%d"),
                 payment_intent.metadata.stay_id
             ))
             if not success:
